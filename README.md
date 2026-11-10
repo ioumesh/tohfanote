@@ -80,3 +80,4 @@ Read `REFERENCE-ANALYSIS.md` for six REA observations and `VERIFICATION.md` for 
 
 No account recovery, moderation dashboard, automatic expiration, email delivery, analytics or payments. WhatsApp is a normal prefilled share link: the user must choose a recipient and send; no message is sent automatically. Music playback depends on browser Web Audio support. The server's small in-memory request throttle is per process/isolate; a high-traffic public service should add edge rate controls and storage budgeting. The Node adapter is intended for one server process; use the R2 adapter for multi-instance hosting. Keep original photos elsewhere. There is no guaranteed retention SLA.
 # tohfanote
+# tohfanote
