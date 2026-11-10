@@ -27,3 +27,17 @@ assert.equal((await api(req('/api/gifts','POST',draft,null,'https://evil.test'),
 const failStore={get:async()=>{throw Error('disk offline')}};const r=await api(req('/api/gifts/'+'a'.repeat(48)),failStore);assert.equal(r.status,500);assert.ok(!(await r.text()).includes('disk offline'));
 }finally{await rm(dir,{recursive:true,force:true});}});
 test('all occasions are accepted with the shared gift contract',async()=>{const dir=await mkdtemp(join(tmpdir(),'yas-occasions-'));try{const store=fileStore(dir);for(const occasion of ['birthday','love','friendship','anniversary','proposal','apology','puzzle']){const r=await api(req('/api/gifts','POST',{...draft,occasion,milestones:[{date:'2020',title:'Our first hello'}]}),store);assert.equal(r.status,201,occasion);}}finally{await rm(dir,{recursive:true,force:true});}});
+
+test('Vercel payload budget bounds both six-photo publishing and full management responses',async()=>{
+ const {MAX_GIFT_BYTES,MAX_PHOTO_DATA_URL_CHARS}=await import('../lib/limits.mjs');
+ const dir=await mkdtemp(join(tmpdir(),'tohfanote-size-'));const store=fileStore(dir);
+ try{
+  // Signature-valid carrier exercises the byte budget; rendering is checked in browsers.
+  const bytes=Buffer.alloc(245000,65);bytes.set([137,80,78,71,13,10,26,10]);const image='data:image/png;base64,'+bytes.toString('base64');assert.ok(image.length<MAX_PHOTO_DATA_URL_CHARS);
+  const six={...draft,photos:Array(6).fill(image)};assert.ok(Buffer.byteLength(JSON.stringify(six))<MAX_GIFT_BYTES);
+  const response=await api(req('/api/gifts/','POST',six),store,{clientIp:'payload-test'});assert.equal(response.status,201);const {id,key}=await response.json();
+  const management=await api(req(`/api/gifts/${id}/manage/`,'GET',null,key),store);assert.equal(management.status,200);assert.ok((await management.arrayBuffer()).byteLength<MAX_GIFT_BYTES);
+  const huge=new Request('https://gift.test/api/gifts',{method:'POST',headers:{'Content-Type':'application/json'},body:' '.repeat(MAX_GIFT_BYTES+1)});assert.equal((await api(huge,store,{clientIp:'payload-too-large'})).status,413);
+  const encodedTooLarge='data:image/png;base64,'+Buffer.concat([bytes,bytes]).toString('base64');assert.equal((await api(req('/api/gifts','POST',{...draft,photos:[encodedTooLarge]}),store,{clientIp:'photo-too-large'})).status,400);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});

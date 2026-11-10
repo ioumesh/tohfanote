@@ -1,43 +1,60 @@
-# Vercel hosting and your domain
+# TohfaNote: Vercel + private Cloudflare R2
 
-TohfaNote is created by [Handmade Gifts Delhi](https://www.instagram.com/handmadegiftsdelhi/).
+The Vercel backend is now implemented in this branch. It has been tested locally, including signed S3 fixture requests. It has not been deployed or tested with your real R2 credentials yet.
 
-**Status:** this source runs with the supplied local Node server or the Cloudflare Worker/R2 package. A complete Vercel backend migration is not implemented or verified. No new deployment was made during recovery.
+## Exact Vercel settings
 
-## What the backend and scripts do
+- Framework: Next.js
+- Root Directory: repository folder with package.json
+- Install Command: npm ci
+- Build Command: npm run build
+- Output: Next.js default (.next); clear old out/dist overrides
+- Production environment variables: R2_ENDPOINT, R2_BUCKET_NAME, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+- Add the same variables to Preview if the branch preview needs to create gifts
+- GIFT_STORAGE=local is forbidden on Vercel; remove any old setting of that value
+- Redeploy after environment/build-setting changes
 
-`server/api.mjs` exports the shared gift API. It validates gifts/photos, creates random gift IDs and management keys, stores only management-key hashes, enforces scheduled access, serves photos, authorizes edits/deletion, checks update revisions, and sets safe response headers. It does not start a server itself. Its `r2Store` adapter expects a Cloudflare Worker R2 binding.
+No PUBLIC_ORIGIN, NEXT_PUBLIC_ credential, R2 public URL, Worker BUCKET binding, SQL database, or R2 browser CORS is required for this implementation. Shared links use the origin of the page being visited. Your domain can remain mapped to the same Vercel project.
 
-| File | Role |
+## Cloudflare settings
+
+Create or select a **private** R2 bucket. The R2 S3 credentials need Object Read & Write for that exact bucket, including reading, creating, conditional editing and deletion. Copy the Access Key ID and Secret Access Key, not the generic API token text. R2_ENDPOINT is the account S3 endpoint with no bucket path. Standard and jurisdiction-specific eu/fedramp account endpoint hosts are admitted. Never put credentials in client-side variables or source files.
+
+## Diagnose errors
+
+| Result from publishing | Meaning/action |
 | --- | --- |
-| scripts/dev.mjs | Build and start the local app; no hot reload |
-| scripts/serve.mjs | Long-running Node HTTP server for the exported frontend and gift API |
-| scripts/storage.mjs | Private local JSON storage in DATA_DIR, with atomic replacements |
-| scripts/package.mjs | Package exported frontend plus API as a Cloudflare Worker |
+| HTML 404 for POST /api/gifts/ | Old deployment or wrong static/output/framework/root settings; deploy the commit that adds the Next.js route |
+| JSON 503 listing missing R2 variables | Set those variables in the environment actually serving that URL, then redeploy |
+| JSON 503 reporting endpoint/bucket format | Use the account-level S3 endpoint and plain bucket name |
+| JSON 503 storage unavailable | Check key pair, correct account/bucket, Object Read & Write scope, expiration and connectivity; server logs only sanitized error names/statuses |
+| JSON 413 gift too large | The app's 3 MiB total budget was exceeded; use fewer/smaller photos |
+| JSON 403 management key | Use the private management link belonging to that gift; recipient links cannot authorize editing |
+| JSON 409 gift changed | Another editor saved first; reload the management link before retrying |
 
-`npm start` starts the custom Node server. Importing this source unchanged into Vercel does not automatically run that server or the Cloudflare Worker.
+The new production build must list a dynamic route: ƒ /api/gifts/[[...path]]. The route handles canonical slash redirects, so both slash forms are supported by fetch. A bare GET /api/gifts is not a public listing or a connection health test.
 
-## Required Vercel changes
+## Before announcing the site as working
 
-1. Remove `output: 'export'` from next.config.ts for a native Next.js API build. Expose GET/POST/PUT/DELETE through a Node Route Handler such as app/api/gifts/[[...path]]/route.ts, calling the shared API. Use next build rather than the Cloudflare packaging step for Vercel.
-2. Implement durable external storage. Never use local DATA_DIR as a persistent Vercel database. R2 can be used through its S3-compatible API, but the current env.BUCKET Worker binding will not exist on Vercel. Another private storage/database provider can replace Cloudflare.
-3. Rework image transfer or lower complete-gift limits. Vercel Functions cap request and response payloads at 4.5 MB; this app permits an 8 MiB request and returns embedded photo data in management responses. A robust design uploads separate image objects through short-lived signed URLs and stores references, with authenticated upload completion/deletion and access enforcement before the scheduled opening. A smaller first version could cap the entire serialized gift well below 4.5 MB. Raising a Next.js body setting cannot override the platform limit.
-4. Add server-side storage secrets through Vercel settings, never NEXT_PUBLIC_. Proposed names for an R2 adapter: R2_ENDPOINT, R2_BUCKET_NAME, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY. These are proposed configuration names, not a working integration in this repository. Use a bucket-scoped token and origin-restricted CORS if implementing direct uploads.
-5. Push to your own Git repository and import the actual app folder into Vercel as Next.js. Use npm ci and the revised next build command with Vercel's default Next.js output handling. Do not choose out/ when using native API routes.
-6. Verify publishing, real photos, separate-device opening, scheduled access, editing/deletion, large payloads, and persistence through redeployment before advertising a working Vercel integration.
-7. In Vercel Settings → Domains, add your purchased domain and use the exact DNS records shown in your DNS provider. Add www/choose the primary domain as desired, wait for verification/HTTPS, then retest gift sharing. New links derive from location.origin.
+1. Confirm a successful Vercel build for this commit with the dynamic API route.
+2. Publish a small synthetic Birthday gift with a real photo.
+3. Open the generated link in another browser/device with no creator storage; ensure the photo loads.
+4. Use the separate management link to edit; confirm the recipient URL stays the same.
+5. Cancel a deletion, then confirm deletion; recipient and image links must stop working.
+6. Test scheduling before and after the selected instant and confirm creator management still works.
+7. Redeploy once and reopen a saved synthetic gift to confirm persistence; clean it up afterward.
+8. Retest from https://tohfanote.live, not only a branch preview hostname.
 
-Moving source code does not move existing gifts. Local data/, the currently hosted R2 bucket and a new hosting storage account are separate unless deliberately migrated. Preserve gift IDs, token hashes and photos when migrating. Reusing the existing Sites-provisioned bucket requires actual authorized access and cannot be assumed. Previously sent URLs need the old hostname or deliberate redirects; management-link origin validation must also be addressed during a domain migration.
+Preview deployment protection may require login and interfere with cross-device testing. Production visitors need access appropriate to your intended public gift links. No domain/DNS access changes were performed by this code update.
 
-## Free use and ongoing operation
+## Remaining operational choices
 
-Cloudflare is optional: the app needs durable storage and an API somewhere. Free allowances may support a small launch, but unlimited free storage/traffic is not guaranteed. Custom domains have their own renewal costs. Vercel Hobby is restricted to personal non-commercial use; a free-to-customers business product is not automatically non-commercial. Keep accounts active, monitor usage/errors, retain private backups and apply security updates. The app currently has no automatic gift expiry.
+The product stays free for recipients, but hosting/storage allowances and commercial-plan rules are separate. Monitor usage, retain private backups and decide a retention policy. The current rate limiter is per runtime; use platform/global abuse controls before larger public traffic. Do not delete the bucket during deployments.
 
-Official references checked 10 November 2026:
+For large-scale or high-resolution gifting, separate photo objects with signed direct uploads are a future extension. This release keeps the existing record format and six-photo flow using stricter automatic compression and a 3 MiB request/response cap, which addresses Vercel's current payload limits without exposing a public bucket.
 
-- https://nextjs.org/docs/app/guides/backend-for-frontend
-- https://vercel.com/kb/guide/how-can-i-use-files-in-serverless-functions
-- https://vercel.com/docs/functions/limitations
-- https://vercel.com/docs/domains/set-up-custom-domain
-- https://vercel.com/docs/plans/hobby
-- https://developers.cloudflare.com/r2/pricing/
+Official sources checked 10 November 2026:
+
+- [Next.js backend route handlers](https://nextjs.org/docs/app/guides/backend-for-frontend)
+- [Vercel function payload limits](https://vercel.com/docs/functions/limitations)
+- [R2 S3 support and conditional PutObject operations](https://developers.cloudflare.com/r2/api/s3/api/)

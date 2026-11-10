@@ -7,9 +7,9 @@
 - Preferred social handle: **@tohfanote**
 - Product creator: [Handmade Gifts Delhi](https://www.instagram.com/handmadegiftsdelhi/)
 
-Shared settings live in lib/brand.ts. The intended production domain is set in metadata and hosting instructions. This update does not register the domain, change DNS, claim the social handle is registered, deploy, or migrate stored gifts. Existing Sites project identity is preserved in .openai/hosting.json; it is a hosting identifier, not visible product branding.
+Shared settings live in lib/brand.ts. The intended production domain is set in metadata and hosting instructions. This update does not register the domain, change DNS, claim the social handle is registered, deploy, or migrate stored gifts. Legacy Sites/Worker packaging has been removed in the Vercel migration; the intended production domain remains unchanged.
 
-Sharing deliberately continues to use the current browser origin: localhost gifts must point to localhost while testing. When the application is actually served at https://tohfanote.live, new gift and management links automatically use that origin. For the custom Node server behind a proxy, set PUBLIC_ORIGIN=https://tohfanote.live on the actual hosted environment; leave it unset for localhost.
+Sharing deliberately continues to use the current browser origin: localhost gifts must point to localhost while testing. When the application is actually served at https://tohfanote.live, new gift and management links automatically use that origin. The native Next.js server handles the request origin on Vercel; no PUBLIC_ORIGIN setting is required.
 
 Historical reference-analysis and recovery reports may mention the former brand as part of the recorded project history. Recipient gift messages written by users are not modified during branding updates.
 

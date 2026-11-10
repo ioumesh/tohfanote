@@ -1,5 +1,6 @@
+import {MAX_GIFT_BYTES,MAX_PHOTO_DATA_URL_CHARS,MAX_PHOTOS} from '../lib/limits.mjs';
 const enc = new TextEncoder();
-export const MAX_BODY = 8 * 1024 * 1024;
+export const MAX_BODY = MAX_GIFT_BYTES;
 const ID = /^[a-f0-9]{48}$/;
 const TOKEN = /^[a-f0-9]{64}$/;
 const occasions = ['birthday','love','friendship','anniversary','proposal','apology','puzzle'];
@@ -14,9 +15,9 @@ function clean(input) {
   if(!occasions.includes(input.occasion)) fail('Choose a supported occasion.');
   if(!['blush','lavender','gold'].includes(input.theme)) fail('Choose a theme.');
   if(!['none','starlight','celebration'].includes(input.music)) fail('Choose a music option.');
-  if(!Array.isArray(input.photos)||input.photos.length>6) fail('Choose up to six photos.');
+  if(!Array.isArray(input.photos)||input.photos.length>MAX_PHOTOS) fail('Choose up to six photos.');
   const photos=input.photos.map((p)=>{
-    if(typeof p!=='string'||p.length>1000000||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/.test(p)) fail('Photos must be JPEG, PNG or WebP, under 750 KB after resizing.');
+    if(typeof p!=='string'||p.length>MAX_PHOTO_DATA_URL_CHARS||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/.test(p)) fail('Photos must be JPEG, PNG or WebP and optimized for sharing. Please remove and re-add this photo.');
     const [meta,data]=p.split(','); let bytes; try {bytes=atob(data.slice(0,24));} catch {fail('Invalid photo.');}
     if(meta.includes('jpeg')&&!bytes.startsWith('\xff\xd8\xff')||meta.includes('png')&&!bytes.startsWith('\x89PNG\r\n\x1a\n')||meta.includes('webp')&&!(bytes.startsWith('RIFF')&&bytes.slice(8,12)==='WEBP')) fail('Photo contents do not match the image type.');
     return p;
@@ -29,7 +30,7 @@ function clean(input) {
   return {milestones,occasion:input.occasion,recipient,sender,message,theme:input.theme,music:input.music,photos,timezone,opensAt};
 }
 export const securityHeaders = {'Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow, noarchive','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'};
-function json(data,status=200,extra={}){return new Response(JSON.stringify(data),{status,headers:{...securityHeaders,'Content-Type':'application/json; charset=utf-8',...extra}});}
+function json(data,status=200,extra={}){let serialized=JSON.stringify(data);if(enc.encode(serialized).byteLength>MAX_BODY){serialized=JSON.stringify({error:'This older gift is too large for the current editor. Contact the site owner to resize it or use its protected deletion API.'});status=413;}return new Response(serialized,{status,headers:{...securityHeaders,'Content-Type':'application/json; charset=utf-8',...extra}});}
 async function body(request){
   if(!request.headers.get('content-type')?.includes('application/json')) fail('Expected JSON.',415);
   if(Number(request.headers.get('content-length'))>MAX_BODY) fail('Your gift is too large. Use fewer photos.',413);
@@ -38,8 +39,8 @@ async function body(request){
   const all=new Uint8Array(size);let i=0;for(const c of chunks){all.set(c,i);i+=c.length;}try{return JSON.parse(new TextDecoder().decode(all));}catch{fail('Invalid gift data.');}
 }
 const rates=new Map();
-function rate(request){const ip=request.headers.get('cf-connecting-ip')||'local';const now=Date.now(); if(rates.size>10000)rates.clear();let item=rates.get(ip);if(!item||item.until<now)item={n:0,until:now+3600000};item.n++;rates.set(ip,item);if(item.n>30)fail('Too many publishing requests. Please try again in an hour.',429);}
-export async function api(request,store){
+function rate(clientIp){const ip=clientIp||'local';const now=Date.now(); if(rates.size>10000)rates.clear();let item=rates.get(ip);if(!item||item.until<now)item={n:0,until:now+3600000};item.n++;rates.set(ip,item);if(item.n>30)fail('Too many publishing requests. Please try again in an hour.',429);}
+export async function api(request,store,{clientIp}={}){
   try{
     const url=new URL(request.url); const parts=url.pathname.split('/').filter(Boolean);
     if(parts[0]!=='api'||parts[1]!=='gifts')return json({error:'Not found.'},404);
@@ -47,8 +48,8 @@ export async function api(request,store){
       const origin=request.headers.get('origin'); if(origin&&origin!==url.origin)fail('This request came from another site.',403);
     }
     if(parts.length===2&&request.method==='POST'){
-      rate(request);const gift=clean(await body(request));const id=random(24),key=random(32);const now=new Date().toISOString();
-      await store.put(id,{...gift,id,tokenHash:await hash(key),createdAt:now,updatedAt:now,revision:1});
+      rate(clientIp);const gift=clean(await body(request));const id=random(24),key=random(32);const now=new Date().toISOString();
+      if(!await store.put(id,{...gift,id,tokenHash:await hash(key),createdAt:now,updatedAt:now,revision:1}))fail('Please try publishing again.',409);
       return json({id,key,revision:1},201);
     }
     const id=parts[2];if(!ID.test(id||''))return json({error:'Gift not found. Check your link.'},404);
