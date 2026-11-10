@@ -1,5 +1,5 @@
 {
-  "origin": "http://localhost:3500",
+  "origin": "http://localhost:3600",
   "checks": [
     "Homepage categories and FAQ",
     "Validation and draft restoration",
@@ -21,5 +21,5 @@
     "No browser JavaScript errors"
   ],
   "errors": [],
-  "verifiedAt": "2026-11-10T12:18:24.441Z"
+  "verifiedAt": "2026-11-10T12:49:02.142Z"
 }

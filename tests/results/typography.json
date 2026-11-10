@@ -1,0 +1,140 @@
+{
+  "checks": [
+    {
+      "width": 320,
+      "path": "/",
+      "mode": "normal"
+    },
+    {
+      "width": 320,
+      "path": "/",
+      "mode": "200percent"
+    },
+    {
+      "width": 320,
+      "path": "/",
+      "mode": "spacing"
+    },
+    {
+      "width": 320,
+      "path": "/create/",
+      "mode": "normal"
+    },
+    {
+      "width": 320,
+      "path": "/create/",
+      "mode": "200percent"
+    },
+    {
+      "width": 320,
+      "path": "/create/",
+      "mode": "spacing"
+    },
+    {
+      "width": 320,
+      "path": "/policies/privacy/",
+      "mode": "normal"
+    },
+    {
+      "width": 320,
+      "path": "/policies/privacy/",
+      "mode": "200percent"
+    },
+    {
+      "width": 320,
+      "path": "/policies/privacy/",
+      "mode": "spacing"
+    },
+    {
+      "width": 393,
+      "path": "/",
+      "mode": "normal"
+    },
+    {
+      "width": 393,
+      "path": "/",
+      "mode": "200percent"
+    },
+    {
+      "width": 393,
+      "path": "/",
+      "mode": "spacing"
+    },
+    {
+      "width": 393,
+      "path": "/create/",
+      "mode": "normal"
+    },
+    {
+      "width": 393,
+      "path": "/create/",
+      "mode": "200percent"
+    },
+    {
+      "width": 393,
+      "path": "/create/",
+      "mode": "spacing"
+    },
+    {
+      "width": 393,
+      "path": "/policies/privacy/",
+      "mode": "normal"
+    },
+    {
+      "width": 393,
+      "path": "/policies/privacy/",
+      "mode": "200percent"
+    },
+    {
+      "width": 393,
+      "path": "/policies/privacy/",
+      "mode": "spacing"
+    },
+    {
+      "width": 1280,
+      "path": "/",
+      "mode": "normal"
+    },
+    {
+      "width": 1280,
+      "path": "/",
+      "mode": "200percent"
+    },
+    {
+      "width": 1280,
+      "path": "/",
+      "mode": "spacing"
+    },
+    {
+      "width": 1280,
+      "path": "/create/",
+      "mode": "normal"
+    },
+    {
+      "width": 1280,
+      "path": "/create/",
+      "mode": "200percent"
+    },
+    {
+      "width": 1280,
+      "path": "/create/",
+      "mode": "spacing"
+    },
+    {
+      "width": 1280,
+      "path": "/policies/privacy/",
+      "mode": "normal"
+    },
+    {
+      "width": 1280,
+      "path": "/policies/privacy/",
+      "mode": "200percent"
+    },
+    {
+      "width": 1280,
+      "path": "/policies/privacy/",
+      "mode": "spacing"
+    }
+  ],
+  "issues": []
+}

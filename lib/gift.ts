@@ -9,7 +9,7 @@ export const occasions:{id:Occasion;name:string;description:string;icon:string;c
 {id:'proposal',name:'Proposal',description:'A question from the heart.',icon:'diamond',color:'lavender'},
 {id:'apology',name:'Apology',description:'Find the words that matter.',icon:'flower',color:'sage'},
 {id:'puzzle',name:'Photo Puzzle',description:'A memory, piece by lovely piece.',icon:'puzzle',color:'peach'},
-{id:'anonymous',name:'Anonymous Gift',description:'A little kindness, from someone special.',icon:'heart',color:'lavender'}];
+{id:'anonymous',name:'Anonymous',description:'A little kindness, from someone special.',icon:'heart',color:'lavender'}];
 export const emptyGift:Gift={occasion:'birthday',recipient:'',sender:'',message:'',photos:[],theme:'blush',music:'none',opensAt:null,timezone:'Asia/Kolkata'};
 export const demoGift:Gift={...emptyGift,recipient:'Sandhya',sender:'Pawan',message:'Some people make the world feel a little warmer just by being in it. You are one of those people.\n\nHere’s to the little adventures, the big dreams, and all the beautiful ordinary days still to come. I’m so glad you’re here. Happy birthday, Sandhya. ♡',music:'starlight'};
 export function dateInZone(iso:string,zone:string){return new Intl.DateTimeFormat('en-GB',{dateStyle:'long',timeStyle:'short',timeZone:zone}).format(new Date(iso));}
