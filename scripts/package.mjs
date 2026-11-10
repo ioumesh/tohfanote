@@ -1,0 +1,8 @@
+import {readdir,readFile,mkdir,writeFile,cp,rm} from 'node:fs/promises';
+import {join,extname} from 'node:path';
+const assets={};const types={'.html':'text/html; charset=utf-8','.js':'application/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.woff2':'font/woff2','.txt':'text/plain'};
+async function walk(dir,prefix=''){for(const e of await readdir(dir,{withFileTypes:true})){const rel=prefix+'/'+e.name;if(e.isDirectory())await walk(join(dir,e.name),rel);else assets[rel]=[types[extname(e.name)]||'application/octet-stream',(await readFile(join(dir,e.name))).toString('base64')];}}
+await walk('out');await rm('dist',{recursive:true,force:true});await mkdir('dist/server',{recursive:true});await mkdir('dist/.openai',{recursive:true});
+const api=await readFile('server/api.mjs','utf8');
+await writeFile('dist/server/index.js',api+'\nconst assets='+JSON.stringify(assets)+`;\nexport default {async fetch(request,env){const url=new URL(request.url);if(url.pathname.startsWith('/api/'))return api(request,r2Store(env.BUCKET));let path=url.pathname;let asset=assets[path]||assets[path.replace(/\\/$/,'')+'/index.html'];let status=200;if(!asset){asset=assets['/404.html'];status=404;}return new Response(Uint8Array.from(atob(asset[1]),c=>c.charCodeAt(0)),{status,headers:{...securityHeaders,'Content-Type':asset[0],'Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"}});}};\n`);
+await cp('.openai/hosting.json','dist/.openai/hosting.json');console.log('Packaged Next.js frontend + durable R2 gift API');
