@@ -22,6 +22,8 @@ test('official SDK sends signed S3 requests, safely classifies 404/403/412 and p
   const key=req.url.split('?')[0];
   const error=(code,status)=>{res.writeHead(status,{'Content-Type':'application/xml'});res.end(`<Error><Code>${code}</Code><Message>private diagnostic must not reach UI</Message></Error>`);};
   if(deny)return error('AccessDenied',403);
+  const parsed=new URL(req.url,'http://fixture');if(req.method==='GET'&&parsed.searchParams.has('list-type')){const prefix=parsed.searchParams.get('prefix')||'';const contents=[...objects.keys()].map(k=>k.replace('/private-fixture/','')).filter(k=>k.startsWith(prefix));res.writeHead(200,{'Content-Type':'application/xml'});return res.end(`<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><IsTruncated>false</IsTruncated>${contents.map(k=>`<Contents><Key>${k}</Key></Contents>`).join('')}</ListBucketResult>`);}
+
   if(req.method==='GET'){const item=objects.get(key);if(!item)return error('NoSuchKey',404);res.writeHead(200,{'Content-Type':'application/json',ETag:item.etag});return res.end(item.text);}
   if(req.method==='PUT'){const chunks=[];for await(const c of req)chunks.push(c);const text=Buffer.concat(chunks).toString();const old=objects.get(key);
    if(req.headers['if-none-match']==='*'&&old||req.headers['if-match']&&old?.etag!==req.headers['if-match'])return error('PreconditionFailed',412);
@@ -37,7 +39,7 @@ test('official SDK sends signed S3 requests, safely classifies 404/403/412 and p
   const saved=await store.get(id);assert.equal(saved.value.message,'one');assert.ok(saved.etag.startsWith('"'));
   assert.equal(await store.put(id,{message:'two',photos:[]},saved.etag),true);
   assert.equal(await store.put(id,{message:'stale'},saved.etag),false);
-  assert.equal((await store.get(id)).value.message,'two');
+  assert.equal((await store.get(id)).value.message,'two');assert.deepEqual((await store.list('gifts/')).items,[id]);assert.equal(await store.put('links/'+id,{id,expiresAt:'2027-01-01T00:00:00Z'}),true);assert.equal((await store.get('links/'+id)).value.id,id);assert.deepEqual((await store.list('links/')).items,['links/'+id]);await store.delete('links/'+id);
   assert.ok(requests.every(req=>req.authorization?.startsWith('AWS4-HMAC-SHA256 ')));
   assert.ok(requests.some(req=>req.url.split('?')[0]===`/private-fixture/gifts/${id}.json`));
   assert.ok(requests.some(req=>req.ifMatch===saved.etag));

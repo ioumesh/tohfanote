@@ -1,6 +1,6 @@
 import {MAX_PHOTO_DATA_URL_CHARS} from './limits.mjs';
-export type Occasion='birthday'|'love'|'friendship'|'anniversary'|'proposal'|'apology'|'puzzle';
-export type Gift={id?:string;revision?:number;milestones?:{date:string;title:string}[];occasion:Occasion;recipient:string;sender:string;message:string;photos:string[];theme:'blush'|'lavender'|'gold';music:'none'|'starlight'|'celebration';opensAt:string|null;timezone:string};
+export type Occasion='birthday'|'love'|'friendship'|'anniversary'|'proposal'|'apology'|'puzzle'|'anonymous';
+export type Gift={id?:string;revision?:number;shareId?:string;revoked?:boolean;expiresAt?:string;retentionEndsAt?:string;passcodeEnabled?:boolean;passcode?:string|null;expired?:boolean;milestones?:{date:string;title:string}[];occasion:Occasion;recipient:string;sender:string;message:string;photos:string[];theme:'blush'|'lavender'|'gold';music:'none'|'starlight'|'celebration';opensAt:string|null;timezone:string};
 export const occasions:{id:Occasion;name:string;description:string;icon:string;color:string}[]=[
 {id:'birthday',name:'Birthday',description:'A wish, a little magic, a lot of love.',icon:'cake',color:'pink'},
 {id:'love',name:'Love',description:'For your favourite person.',icon:'heart',color:'rose'},
@@ -8,9 +8,10 @@ export const occasions:{id:Occasion;name:string;description:string;icon:string;c
 {id:'anniversary',name:'Anniversary',description:'Another chapter of your story.',icon:'rings',color:'peach'},
 {id:'proposal',name:'Proposal',description:'A question from the heart.',icon:'diamond',color:'lavender'},
 {id:'apology',name:'Apology',description:'Find the words that matter.',icon:'flower',color:'sage'},
-{id:'puzzle',name:'Photo Puzzle',description:'A memory, piece by lovely piece.',icon:'puzzle',color:'peach'}];
+{id:'puzzle',name:'Photo Puzzle',description:'A memory, piece by lovely piece.',icon:'puzzle',color:'peach'},
+{id:'anonymous',name:'Anonymous Gift',description:'A little kindness, from someone special.',icon:'heart',color:'lavender'}];
 export const emptyGift:Gift={occasion:'birthday',recipient:'',sender:'',message:'',photos:[],theme:'blush',music:'none',opensAt:null,timezone:'Asia/Kolkata'};
-export const demoGift:Gift={...emptyGift,recipient:'Alex',sender:'Someone who loves you',message:'Some people make the world feel a little warmer just by being in it. You are one of those people.\n\nHere’s to the little adventures, the big dreams, and all the beautiful ordinary days still to come. I’m so glad you’re here. Happy birthday, Alex. ♡',music:'starlight'};
+export const demoGift:Gift={...emptyGift,recipient:'Sandhya',sender:'Pawan',message:'Some people make the world feel a little warmer just by being in it. You are one of those people.\n\nHere’s to the little adventures, the big dreams, and all the beautiful ordinary days still to come. I’m so glad you’re here. Happy birthday, Sandhya. ♡',music:'starlight'};
 export function dateInZone(iso:string,zone:string){return new Intl.DateTimeFormat('en-GB',{dateStyle:'long',timeStyle:'short',timeZone:zone}).format(new Date(iso));}
 export function zonedISO(local:string,zone:string){
  if(!local)return null;

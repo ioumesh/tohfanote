@@ -10,6 +10,7 @@ The Vercel backend is now implemented in this branch. It has been tested locally
 - Build Command: npm run build
 - Output: Next.js default (.next); clear old out/dist overrides
 - Production environment variables: R2_ENDPOINT, R2_BUCKET_NAME, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+- Add SESSION_SECRET and CRON_SECRET (different random values, at least 32 characters) before deploying this privacy release. Read PRIVACY-UPGRADE.md and run the one-time legacy gift migration.
 - Add the same variables to Preview if the branch preview needs to create gifts
 - GIFT_STORAGE=local is forbidden on Vercel; remove any old setting of that value
 - Redeploy after environment/build-setting changes
@@ -49,7 +50,7 @@ Preview deployment protection may require login and interfere with cross-device 
 
 ## Remaining operational choices
 
-The product stays free for recipients, but hosting/storage allowances and commercial-plan rules are separate. Monitor usage, retain private backups and decide a retention policy. The current rate limiter is per runtime; use platform/global abuse controls before larger public traffic. Do not delete the bucket during deployments.
+The product stays free for recipients, but hosting/storage allowances and commercial-plan rules are separate. Monitor usage, retain private backups and decide a retention/backup policy. Durable attempt limits protect passcodes and creation; use platform/global abuse controls before larger public traffic. Do not delete the bucket during deployments.
 
 For large-scale or high-resolution gifting, separate photo objects with signed direct uploads are a future extension. This release keeps the existing record format and six-photo flow using stricter automatic compression and a 3 MiB request/response cap, which addresses Vercel's current payload limits without exposing a public bucket.
 
