@@ -86,7 +86,7 @@ npm test
 TEST_ORIGIN=http://localhost:3100 npm run test:browser
 ```
 
-Browser tests use an installed Chrome/Chromium (`CHROME_PATH`, default /usr/bin/google-chrome) and publish/delete synthetic records on the selected test origin. They should run against a local instance first. They cover independent mobile browser reopening, uploads (including a detailed/noisy image), previews, publishing, clipboard/WhatsApp URL, edit/delete confirmation, schedules and all seven occasions. The backend suite includes a local S3-compatible fixture that checks real SDK request signing, key paths, conditional write headers, permission errors and deletion. A fixture is not proof of a real account's credentials or permissions.
+Browser tests use an installed Chrome/Chromium (`CHROME_PATH`, default /usr/bin/google-chrome) and publish/delete synthetic records on the selected test origin. They should run against a local instance first. They cover independent mobile browser reopening, uploads (including a detailed/noisy image), previews, publishing, clipboard/email URL, edit/delete confirmation, schedules and all eight gift categories. The backend suite includes a local S3-compatible fixture that checks real SDK request signing, key paths, conditional write headers, permission errors and deletion. A fixture is not proof of a real account's credentials or permissions.
 
 To verify your own real R2 credentials privately, create .env.local from .env.example with the four R2 values and SESSION_SECRET, then run:
 

@@ -1,5 +1,5 @@
 {
-  "origin": "http://localhost:3200",
+  "origin": "http://localhost:3300",
   "checks": [
     "Nonce CSP, frame protection and privacy headers; nonce changes per response",
     "Recipient name never enters new URL; Clear draft erases saved data and current form",
@@ -8,10 +8,10 @@
     "Revoke/regenerate stops old URLs and invalidates previous unlock sessions",
     "Management-key rotation exposes replacement privately, rejects old key and survives reload",
     "Protected deletion and cancellation remain correct after all privacy actions",
-    "Reference-inspired footer, correct help number, all six policy/about/contact pages and mobile layout",
+    "Reference-inspired footer, email support, all six policy/about/contact pages and mobile layout",
     "Daily cleanup rejects anonymous callers and runs with the configured cron secret",
     "No unexpected browser JavaScript errors under enforced CSP"
   ],
   "errors": [],
-  "verifiedAt": "2026-11-10T11:17:02.591Z"
+  "verifiedAt": "2026-11-10T11:54:08.792Z"
 }

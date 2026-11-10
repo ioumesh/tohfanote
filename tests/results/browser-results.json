@@ -1,12 +1,12 @@
 {
-  "origin": "http://localhost:3200",
+  "origin": "http://localhost:3300",
   "checks": [
     "Homepage categories and FAQ",
     "Validation and draft restoration",
     "Photo upload, resize, reorder, remove and invalid file handling",
     "Schedule toggle, date and timezone survive draft reload",
     "Preview, candle interaction, keyboard gallery, user-started music and reduced motion",
-    "Publish, Copy Link and WhatsApp URL",
+    "Publish, Copy Link and email URL",
     "Published gift opens in independent mobile browser without creator storage; management is protected",
     "Protected edits persist and recipient link stays the same",
     "Protected deletion removes published gift",
@@ -21,5 +21,5 @@
     "No browser JavaScript errors"
   ],
   "errors": [],
-  "verifiedAt": "2026-11-10T11:11:26.138Z"
+  "verifiedAt": "2026-11-10T11:54:48.574Z"
 }

@@ -12,7 +12,7 @@ try{
  await page.addInitScript(()=>{window.__audioStarts=0;const Original=window.AudioContext;window.AudioContext=class extends Original{constructor(...args){super(...args);window.__audioStarts++;}};});
  await page.goto(origin);await page.getByRole('heading',{name:/Some people/}).waitFor();
  await page.screenshot({path:'tests/results/home-desktop.png',fullPage:true});
- assert.equal(await page.locator('.occasions a').count(),7);assert.equal(await page.getByRole('link',{name:'Handmade Gifts Delhi'}).getAttribute('href'),'https://www.instagram.com/handmadegiftsdelhi/');
+ assert.equal(await page.locator('.occasions a').count(),8);assert.equal(await page.getByRole('link',{name:'Handmade Gifts Delhi'}).getAttribute('href'),'https://www.instagram.com/handmadegiftsdelhi/');
  await page.locator('summary').filter({hasText:'Is it really free?'}).click();assert.equal(await page.locator('details[open]').count(),1);check('Homepage categories and FAQ');
  await page.getByLabel('Who are we making smile?').fill('Alex');await page.getByRole('button',{name:'Create a Surprise'}).click();
  await page.getByRole('heading',{name:'First, the people.'}).waitFor();assert.equal(await page.getByLabel('Their name',{exact:true}).inputValue(),'Alex');
@@ -38,7 +38,7 @@ try{
  const giftLink=await page.getByLabel('Their gift link').inputValue();const management=await page.getByLabel('Management link — keep private').inputValue();const secretParams=new URLSearchParams(new URL(management).hash.slice(1));cleanups.push({id:secretParams.get('id'),key:secretParams.get('key')});
  assert.equal(await page.getByLabel('Management link — keep private').getAttribute('type'),'password');await page.getByRole('button',{name:'Show secret link',exact:true}).click();assert.equal(await page.getByLabel('Management link — keep private').getAttribute('type'),'text');await page.getByRole('button',{name:'Hide secret link',exact:true}).click();assert.equal(await page.getByRole('link',{name:'Edit or delete gift'}).getAttribute('href'),management);
  await page.getByRole('button',{name:'Copy Link',exact:true}).click();assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),giftLink);
- assert.ok((await page.getByRole('link',{name:'Share on WhatsApp'}).getAttribute('href')).includes(encodeURIComponent(giftLink)));check('Publish, Copy Link and WhatsApp URL');
+ assert.ok((await page.getByRole('link',{name:'Share by email'}).getAttribute('href')).includes(encodeURIComponent(giftLink)));check('Publish, Copy Link and email URL');
  const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});const recipient=await mobile.newPage();recipient.on('pageerror',e=>errors.push(e.message));
  await recipient.goto(giftLink);await recipient.getByRole('button',{name:'Open your surprise'}).waitFor();assert.equal(await recipient.evaluate(()=>localStorage.length),0);await recipient.screenshot({path:'tests/results/gift-mobile-opening.png',fullPage:true});
  await recipient.getByRole('button',{name:'Open your surprise'}).click();await recipient.getByRole('heading',{name:/Happy birthday,/}).waitFor();assert.ok(await recipient.locator('.personal-letter').innerText());await recipient.waitForFunction(()=>{const img=document.querySelector('.polaroid img');return img?.complete&&img.naturalWidth>0;},{},{timeout:20000});

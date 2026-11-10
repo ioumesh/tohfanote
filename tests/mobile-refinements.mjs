@@ -1,0 +1,23 @@
+import {chromium} from 'playwright-core';
+import assert from 'node:assert/strict';
+import {writeFile} from 'node:fs/promises';
+const origin=process.env.TEST_ORIGIN||'http://localhost:3300';
+const browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',headless:true,args:['--no-sandbox']});
+const errors=[],checks=[];const photo='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1sAAAAASUVORK5CYII=';
+try{
+ for(const width of [320,360,390,430]){
+  const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+  const fit=async name=>{assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}px overflow on ${name}`);checks.push(`${width}px ${name}`);};
+  await page.goto(origin);await fit('home');assert.equal(await page.locator('a[href*="wa.me"]').count(),0);assert.ok(await page.locator('a[href="mailto:umesh.devcraft@gmail.com"]').count());
+  await page.goto(origin+'/create/?occasion=anonymous');await page.getByRole('heading',{name:'First, the people.'}).waitFor();assert.equal(await page.getByLabel('Your name',{exact:true}).count(),0);await fit('anonymous builder');
+  await page.getByLabel('Their name',{exact:true}).fill('Sandhya');await page.getByLabel('Your letter',{exact:false}).fill('A kind little anonymous message made just for you.');await page.getByRole('button',{name:'Continue',exact:true}).click();await fit('photos');await page.getByRole('button',{name:'Continue',exact:true}).click();await page.getByLabel('Recipient passcode',{exact:true}).fill('123456');assert.equal(await page.locator('.passcode-boxes .filled').count(),6);await fit('passcode and finishing touches');await page.waitForTimeout(500);assert.ok(!(await page.evaluate(()=>localStorage.getItem('yas-draft-v1'))).includes('123456'));
+  await page.getByRole('button',{name:'Clear draft',exact:true}).click();await page.waitForTimeout(500);assert.equal(await page.getByLabel('Their name',{exact:true}).inputValue(),'');assert.equal(await page.getByLabel('Your letter',{exact:false}).inputValue(),'');assert.equal(await page.evaluate(()=>localStorage.getItem('yas-draft-v1')),null);assert.ok(!page.url().includes('occasion='));await page.reload();await page.getByRole('heading',{name:'First, the people.'}).waitFor();assert.equal(await page.getByLabel('Your letter',{exact:false}).inputValue(),'');checks.push(`${width}px clear draft and reload`);
+  const created=await page.request.post(origin+'/api/gifts',{data:{occasion:'anonymous',recipient:'Sandhya',sender:'Hidden name',message:'A private anonymous letter for Sandhya.',photos:[photo],theme:'blush',music:'none',timezone:'UTC',opensAt:null,passcode:'123456'}});assert.equal(created.status(),201);const gift=await created.json();
+  try{
+   await page.goto(origin+'/gift/?id='+gift.shareId);await page.getByRole('button',{name:'Unlock my gift'}).waitFor();await fit('recipient passcode');await page.getByLabel('Recipient passcode').fill('123456');await page.getByRole('button',{name:'Unlock my gift'}).click();await page.getByRole('button',{name:'Open your surprise'}).click();await page.getByText('A private anonymous letter for Sandhya.',{exact:true}).waitFor();assert.ok(!(await page.locator('body').innerText()).includes('Hidden name'));await fit('opened gift');
+   if(width===390)await page.screenshot({path:'tests/results/mobile-refined-gift.png',fullPage:true});
+  }finally{await page.request.delete(origin+'/api/gifts/'+gift.id+'/manage',{headers:{Authorization:'Bearer '+gift.key}});}
+  await page.goto(origin+'/policies/contact/');await fit('contact');assert.ok((await page.locator('.policy-page').innerText()).includes('umesh.devcraft@gmail.com'));if(width===320)await page.screenshot({path:'tests/results/mobile-refined-contact.png',fullPage:true});await context.close();
+ }
+ assert.deepEqual(errors,[]);await writeFile('tests/results/mobile-refinements.json',JSON.stringify({checks,errors,verifiedAt:new Date().toISOString()},null,2));console.log(`${checks.length} mobile checks passed; no browser errors.`);
+}finally{await browser.close();}

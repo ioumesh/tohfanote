@@ -73,3 +73,7 @@ The full 18-group browser suite and 10 dedicated privacy browser groups passed l
 This is access control with private provider storage, not end-to-end encryption. Authorized backend/storage administrators can access stored content. Protect your Vercel/Cloudflare/GitHub accounts with MFA and least-privilege access. Keep the R2 bucket private (public r2.dev and bucket custom-domain exposure disabled). Maintain a suitable backup/retention policy and monitor the cleanup job. For higher traffic, add platform/global creation-abuse controls; per-gift protections do not promise unlimited denial-of-service resistance.
 
 Use a separate private bucket and distinct SESSION_SECRET for Preview environments where possible, so preview code does not receive access to production customer gifts. Never test bulk migration/cleanup against a bucket you do not intend to modify. These operational settings require your account configuration; they were not changed automatically.
+
+## Mobile and email update
+
+Passcodes use six masked visual slots backed by a single keyboard/paste-accessible input; these remain creator-chosen passcodes, not emailed OTPs. Email support opens mailto:umesh.devcraft@gmail.com. Share by email opens the visitor’s email app with a gift link. No SMTP credentials or email delivery service is needed. Clear draft resets all fields, photos, code, schedule, theme/music and saved browser draft without a blocking dialog; pending photo work cannot refill it. The mobile suite checks 320, 360, 390 and 430 px widths.
