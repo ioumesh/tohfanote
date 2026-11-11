@@ -1,6 +1,7 @@
+import type { BhaiDoojDetails } from './bhai-dooj';
 import {MAX_PHOTO_DATA_URL_CHARS} from './limits.mjs';
-export type Occasion='birthday'|'love'|'friendship'|'anniversary'|'proposal'|'apology'|'puzzle'|'anonymous';
-export type Gift={id?:string;revision?:number;shareId?:string;revoked?:boolean;expiresAt?:string;retentionEndsAt?:string;passcodeEnabled?:boolean;passcode?:string|null;expired?:boolean;milestones?:{date:string;title:string}[];occasion:Occasion;recipient:string;sender:string;message:string;photos:string[];theme:'blush'|'lavender'|'gold';music:'none'|'starlight'|'celebration';opensAt:string|null;timezone:string};
+export type Occasion='birthday'|'love'|'friendship'|'anniversary'|'proposal'|'apology'|'puzzle'|'anonymous'|'diwali'|'bhai-dooj'|'favourite-light'|'dhanteras'|'garba'|'navratri';
+export type Gift={bhaiDooj?:BhaiDoojDetails;revealNotes?:string[];id?:string;revision?:number;shareId?:string;revoked?:boolean;expiresAt?:string;retentionEndsAt?:string;passcodeEnabled?:boolean;passcode?:string|null;expired?:boolean;milestones?:{date:string;title:string}[];occasion:Occasion;recipient:string;sender:string;message:string;photos:string[];theme:'blush'|'lavender'|'gold';music:'none'|'starlight'|'celebration';opensAt:string|null;timezone:string};
 export const occasions:{id:Occasion;name:string;description:string;icon:string;color:string}[]=[
 {id:'birthday',name:'Birthday',description:'A wish, a little magic, a lot of love.',icon:'cake',color:'pink'},
 {id:'love',name:'Love',description:'For your favourite person.',icon:'heart',color:'rose'},
@@ -9,7 +10,13 @@ export const occasions:{id:Occasion;name:string;description:string;icon:string;c
 {id:'proposal',name:'Proposal',description:'A question from the heart.',icon:'diamond',color:'lavender'},
 {id:'apology',name:'Apology',description:'Find the words that matter.',icon:'flower',color:'sage'},
 {id:'puzzle',name:'Photo Puzzle',description:'A memory, piece by lovely piece.',icon:'puzzle',color:'peach'},
-{id:'anonymous',name:'Anonymous',description:'A little kindness, from someone special.',icon:'heart',color:'lavender'}];
+{id:'anonymous',name:'Anonymous',description:'A little kindness, from someone special.',icon:'heart',color:'lavender'},
+{id:'diwali',name:'Diwali',description:'Light three diyas and share a wish.',icon:'spark',color:'peach'},
+{id:'bhai-dooj',name:'Bhai Dooj',description:'A festive thali and a note for your sibling.',icon:'flower',color:'rose'},
+{id:'favourite-light',name:'Favourite Light',description:'Lanterns filled with memories for someone special.',icon:'spark',color:'lavender'},
+{id:'dhanteras',name:'Dhanteras',description:'Plant a wish and watch it grow.',icon:'flower',color:'sage'},
+{id:'garba',name:'Garba Invite',description:'Invite them to a night on the dance floor.',icon:'music',color:'rose'},
+{id:'navratri',name:'Navratri Wishes',description:'Send a warm blessing across the miles.',icon:'spark',color:'peach'}];
 export const emptyGift:Gift={occasion:'birthday',recipient:'',sender:'',message:'',photos:[],theme:'blush',music:'none',opensAt:null,timezone:'Asia/Kolkata'};
 export const demoGift:Gift={...emptyGift,recipient:'Sandhya',sender:'Pawan',message:'Some people make the world feel a little warmer just by being in it. You are one of those people.\n\nHere’s to the little adventures, the big dreams, and all the beautiful ordinary days still to come. I’m so glad you’re here. Happy birthday, Sandhya. ♡',music:'starlight'};
 export function dateInZone(iso:string,zone:string){return new Intl.DateTimeFormat('en-GB',{dateStyle:'long',timeStyle:'short',timeZone:zone}).format(new Date(iso));}

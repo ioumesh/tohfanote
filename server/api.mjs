@@ -3,12 +3,12 @@ import {DAY,RETENTION_DAYS,random,hash,matches,problem,policy,sessionSecret,limi
 const enc=new TextEncoder();
 export const MAX_BODY=MAX_GIFT_BYTES;
 const ID=/^[a-f0-9]{48}$/;const TOKEN=/^[a-f0-9]{64}$/;
-const occasions=['birthday','love','friendship','anniversary','proposal','apology','puzzle','anonymous'];
+const occasions=['birthday','love','friendship','anniversary','proposal','apology','puzzle','anonymous','diwali','bhai-dooj','favourite-light','dhanteras','garba','navratri'];
 const fail=problem;
 function clean(input) {
   if (!input || typeof input !== 'object') fail('Please complete the gift form.');
   const text=(key,max,min=1)=>{const value=input[key]; if(typeof value!=='string'||value.trim().length<min||value.length>max) fail(`${key}: use ${min}–${max} characters.`); return value.trim();};
-  const recipient=text('recipient',60), sender=input.occasion==='anonymous'?'Someone special':text('sender',60), message=text('message',5000,10);
+  const recipient=text('recipient',60), sender=input.occasion==='anonymous'?'Someone special':text('sender',60), message=text('message',5000,input.occasion==='bhai-dooj'&&input.bhaiDooj?0:10);
   if(!occasions.includes(input.occasion)) fail('Choose a supported occasion.');
   if(!['blush','lavender','gold'].includes(input.theme)) fail('Choose a theme.');
   if(!['none','starlight','celebration'].includes(input.music)) fail('Choose a music option.');
@@ -24,7 +24,26 @@ function clean(input) {
   let opensAt=null;
   if(input.opensAt){const date=new Date(input.opensAt); if(isNaN(date.getTime())||date.getTime()>Date.now()+30*86400000) fail('Choose an opening date within the next 30 days.'); opensAt=date.toISOString();}
   const milestones = Array.isArray(input.milestones) ? input.milestones.slice(0,5).map(m=>{if(!m||typeof m.date!=='string'||typeof m.title!=='string'||m.date.length>40||m.title.length>120||!m.date.trim()||!m.title.trim()) fail('Each timeline memory needs a date and a title.'); return {date:m.date.trim(),title:m.title.trim()};}) : [];
-  return {milestones,occasion:input.occasion,recipient,sender,message,theme:input.theme,music:input.music,photos,timezone,opensAt};
+  let revealNotes = [];
+  if (input.revealNotes !== undefined) {
+    if (!Array.isArray(input.revealNotes) || input.revealNotes.length > 3 ||
+        input.revealNotes.some(note => typeof note !== 'string' || note.length > 160)) {
+      fail('Use up to three reveal notes with at most 160 characters each.');
+    }
+    revealNotes = input.revealNotes.map(note => note.trim());
+  }
+  let bhaiDooj;
+  if (input.occasion === 'bhai-dooj' && input.bhaiDooj !== undefined) {
+    const { sibling, bond } = input.bhaiDooj ?? {};
+    if (!['brother', 'sister'].includes(sibling) || !['loving', 'playful', 'far-away'].includes(bond)) {
+      fail('Choose who this Bhai Dooj gift is for and the tone of the notes.');
+    }
+    if (revealNotes.length !== 3 || revealNotes.some(note => !note)) {
+      fail('Write three short Bhai Dooj notes.');
+    }
+    bhaiDooj = { sibling, bond };
+  }
+  return {milestones,revealNotes,...(bhaiDooj ? {bhaiDooj} : {}),occasion:input.occasion,recipient,sender,message,theme:input.theme,music:input.music,photos,timezone,opensAt};
 }
 export const securityHeaders={'Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow, noarchive','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'};
 function json(value,status=200,headers={}){let text=JSON.stringify(value);if(enc.encode(text).length>MAX_BODY){text=JSON.stringify({error:'This older gift exceeds the current editor size limit. Contact support.'});status=413;}return new Response(text,{status,headers:{...securityHeaders,'Content-Type':'application/json; charset=utf-8',...headers}});}

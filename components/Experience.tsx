@@ -1,19 +1,29 @@
 'use client';
+import { BhaiDoojExperience } from './BhaiDoojExperience';
+import { useMusic } from '@/lib/use-gift-music';
+import { GiftInteraction } from './GiftInteraction';
 import {BrandName} from '@/components/BrandName';
 import {useEffect,useRef,useState} from 'react';
 import {Gift,occasions} from '@/lib/gift';
 import {CakeArt,Envelope,Icon,MemoryArt} from './Art';
 import {GiftActions} from './GiftActions';
-function useMusic(track:string){
- const [playing,setPlaying]=useState(false);const [volume,setVolume]=useState(.25);const context=useRef<AudioContext|null>(null);const gain=useRef<GainNode|null>(null);const timer=useRef<ReturnType<typeof setInterval>|null>(null);
- const stop=()=>{if(timer.current)clearInterval(timer.current);timer.current=null;context.current?.close();context.current=null;gain.current=null;setPlaying(false);};
- useEffect(()=>()=>{if(timer.current)clearInterval(timer.current);context.current?.close();},[]);
- const toggle=async()=>{if(playing){stop();return;}try{const ctx=new AudioContext();context.current=ctx;await ctx.resume();const output=ctx.createGain();gain.current=output;output.gain.value=volume;output.connect(ctx.destination);let index=0;const notes=track==='celebration'?[261.63,329.63,392,523.25,440,392,329.63,293.66]:[261.63,392,329.63,493.88,440,329.63,392,293.66];
- const note=()=>{if(ctx.state==='closed')return;const osc=ctx.createOscillator(),g=ctx.createGain();osc.type='sine';osc.frequency.value=notes[index++%notes.length];g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(.22,ctx.currentTime+.04);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+1.4);osc.connect(g);g.connect(output);osc.start();osc.stop(ctx.currentTime+1.5);};note();timer.current=setInterval(note,track==='celebration'?430:720);setPlaying(true);}catch{stop();}};
- function change(value:number){setVolume(value);if(gain.current)gain.current.gain.value=value;}
- return {playing,toggle,volume,change,stop};
+type ExperienceProps = {
+ gift: Gift;
+ preview?: boolean;
+ onExit?: () => void;
+ onPublish?: () => void;
+ publishing?: boolean;
+ publishLabel?: string;
+ publishError?: string;
+};
+
+export function Experience(props: ExperienceProps) {
+ return props.gift.occasion === 'bhai-dooj'
+   ? <BhaiDoojExperience {...props} />
+   : <StandardExperience {...props} />;
 }
-export function Experience({gift,preview=false,onExit}:{gift:Gift;preview?:boolean;onExit?:()=>void}){
+
+function StandardExperience({gift,preview=false,onExit}:ExperienceProps){
  const sender=gift.occasion==='anonymous'?'Someone special':gift.sender;
  const [open,setOpen]=useState(false);const [unwrapping,setUnwrapping]=useState(false);const openingTimer=useRef<ReturnType<typeof setTimeout>|null>(null);const [candles,setCandles]=useState(true);const [confetti,setConfetti]=useState(false);const [index,setIndex]=useState(0);const [reveal,setReveal]=useState(false);const [answer,setAnswer]=useState('');const [tiles,setTiles]=useState([4,1,7,0,8,3,6,2,5]);const [selected,setSelected]=useState<number|null>(null);const touch=useRef(0);const heading=useRef<HTMLHeadingElement>(null);const music=useMusic(gift.music);
  useEffect(()=>{if(open)heading.current?.focus();},[open]);
@@ -31,9 +41,14 @@ export function Experience({gift,preview=false,onExit}:{gift:Gift;preview?:boole
  <div className="experience-brand"><BrandName/> ♡</div>
  {!open?<section className={`opening ${unwrapping?'unwrapping':''}`}><span className="eyebrow">A LITTLE SOMETHING FROM {sender.toUpperCase()}</span><h1>For you, <em>{gift.recipient}.</em></h1><p>Someone turned their favourite feeling into a little surprise.</p><Envelope name={gift.recipient}/><button className="button primary" disabled={unwrapping} onClick={unwrap}>{unwrapping?'Opening your surprise…':'Open your surprise'} <Icon name="heart" size={18}/></button><p className="micro">Take a breath. This moment is yours.</p></section>:<>
  <div className="gift-controls">{gift.music!=='none'&&<div className="music-control"><button onClick={music.toggle} aria-pressed={music.playing}><Icon name="music" size={17}/>{music.playing?'Pause music':'Play music'}</button><label><span className="sr-only">Music volume</span><input aria-label="Music volume" type="range" min="0" max="0.6" step="0.05" value={music.volume} onChange={e=>music.change(Number(e.target.value))}/></label></div>}<button onClick={replay}>↻ Replay gift</button></div>
- <section className="gift-welcome"><span className="eyebrow">{occasions.find(o=>o.id===gift.occasion)?.name.toUpperCase()} · MADE JUST FOR YOU</span><h1 ref={heading} tabIndex={-1}>{gift.occasion==='birthday'?'Happy birthday,':gift.occasion==='anniversary'?'Here’s to us,':gift.occasion==='apology'?'From my heart,':gift.occasion==='friendship'?'My favourite human,':'You are so loved,'}<br/><em>{gift.recipient}.</em></h1><p>{gift.occasion==='birthday'?'The world is a little brighter with you in it.':'There are things a little link can say better than a thousand ordinary messages.'}</p>
- {gift.occasion==='birthday'&&<div className="cake-scene"><CakeArt lit={candles}/><button className="button secondary" onClick={()=>{if(candles){setCandles(false);burst();}else{setCandles(true);}}}>{candles?'Make a wish & blow out the candles':'Light the candles again'}</button><p className="handwritten" aria-live="polite">{candles?'Close your eyes. Wish for something wonderful.':'May your wish find its way to you. ♡'}</p></div>}
- {gift.occasion==='proposal'&&<div className="proposal-scene"><Icon name="diamond" size={70}/>{!reveal?<button className="button primary" onClick={()=>setReveal(true)}>There’s something I want to ask…</button>:<><h2>Will you start our next chapter with me?</h2>{!answer?<div className="button-row"><button className="button primary" onClick={()=>{setAnswer('A beautiful beginning. Here’s to your next chapter together. ♡');burst();}}>Yes, a thousand times</button><button className="button secondary" onClick={()=>setAnswer('Take all the time you need. Your feelings matter. ♡')}>I need a little time</button></div>:<p role="status">{answer}<small className="block">This answer stays on your screen. Tell {sender} in your own words.</small></p>}</>}</div>}
+ <section className="gift-welcome"><span className="eyebrow">{occasions.find(o=>o.id===gift.occasion)?.name.toUpperCase()} · MADE JUST FOR YOU</span><h1 ref={heading} tabIndex={-1}>{gift.occasion==='birthday'?'Happy birthday,':gift.occasion==='diwali'?'Happy Diwali,':gift.occasion==='dhanteras'?'Happy Dhanteras,':gift.occasion==='favourite-light'?'My favourite light,':gift.occasion==='navratri'?'Happy Navratri,':gift.occasion==='garba'?'An invitation for,':gift.occasion==='anniversary'?'Here’s to us,':gift.occasion==='apology'?'From my heart,':gift.occasion==='friendship'?'My favourite human,':'You are so loved,'}<br/><em>{gift.recipient}.</em></h1><p>{gift.occasion==='birthday'?'The world is a little brighter with you in it.':'There are things a little link can say better than a thousand ordinary messages.'}</p>
+ {gift.occasion==='birthday'&&<div className="cake-scene"><CakeArt lit={candles} theme={gift.theme}/><button className="button secondary" onClick={()=>{if(candles){setCandles(false);burst();}else{setCandles(true);}}}>{candles?'Make a wish & blow out the candles':'Light the candles again'}</button><p className="handwritten" aria-live="polite">{candles?'Close your eyes. Wish for something wonderful.':'May your wish find its way to you. ♡'}</p></div>}
+ {(gift.occasion === 'birthday' || gift.occasion === 'diwali' ||
+   gift.occasion === 'favourite-light' || gift.occasion === 'dhanteras' || gift.occasion === 'garba' || gift.occasion === 'navratri' ||
+   (gift.occasion === 'love' && gift.revealNotes?.some(note => note.trim()))) && (
+   <GiftInteraction occasion={gift.occasion} notes={gift.revealNotes} photos={gift.photos} onComplete={burst} />
+ )}
+ {gift.occasion==='proposal'&&<div className="proposal-scene"><Icon name="diamond" size={70}/>{!reveal?<button className="button primary" onClick={()=>setReveal(true)}>There’s something I want to ask…</button>:<><h2>{gift.revealNotes?.[0]?.trim() || 'Will you start our next chapter with me?'}</h2>{!answer?<div className="button-row"><button className="button primary" onClick={()=>{setAnswer('A beautiful beginning. Here’s to your next chapter together. ♡');burst();}}>Yes, a thousand times</button><button className="button secondary" onClick={()=>setAnswer('Take all the time you need. Your feelings matter. ♡')}>I need a little time</button></div>:<p role="status">{answer}<small className="block">This answer stays on your screen. Tell {sender} in your own words.</small></p>}</>}</div>}
  {gift.occasion==='anniversary'&&<div className="timeline"><span className="eyebrow">OUR LITTLE STORY</span>{(gift.milestones?.length?gift.milestones:[{date:'The beginning',title:'Our paths found each other.'},{date:'All the days between',title:'Little moments became our favourite memories.'},{date:'What comes next',title:'More beautiful days, together.'}]).map((m,i)=><div key={i}><span>✦</span><small>{m.date}</small><h3>{m.title}</h3></div>)}</div>}
  {gift.occasion==='puzzle'&&gift.photos.length>0&&<section className="puzzle-section"><h2>A little memory, waiting to come together.</h2><p>Tap two pieces to swap them. Put the photo back together.</p><div className="puzzle" aria-label="Photo puzzle">{tiles.map((tile,i)=><button key={i} aria-label={`Position ${i+1}, piece ${tile+1}${selected===i?', selected':''}`} aria-pressed={selected===i} className={selected===i?'selected':''} onClick={()=>puzzleClick(i)} style={{backgroundImage:`url("${gift.photos[0]}")`,backgroundPosition:`${tile%3*50}% ${Math.floor(tile/3)*50}%`}}><span>{tile+1}</span></button>)}</div><p role="status">{solved?'You found our little picture of happiness. ♡':selected===null?'Choose a piece to begin.':'Now choose the piece to swap with it.'}</p></section>}
  </section>
